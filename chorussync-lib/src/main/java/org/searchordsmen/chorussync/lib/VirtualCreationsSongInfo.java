@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
-@ToString(includeFieldNames=true)
+//@ToString(of={"title"},includeFieldNames=false)
 @EqualsAndHashCode
 public class VirtualCreationsSongInfo implements SongInfo {
 
@@ -65,5 +65,10 @@ public class VirtualCreationsSongInfo implements SongInfo {
 	}
 	public String getTenorMp3Url() {
 		return tenorMp3Url;
+	}
+	
+	@Override
+	public String toString() {
+	    return getTitle();
 	}
 }

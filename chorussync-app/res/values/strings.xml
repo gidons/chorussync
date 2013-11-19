@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">chorussync</string>
+    <string name="title_song_detail">Song Detail</string>
+    <string name="action_sync">Sync</string>
+    <string name="action_search">Search</string>
+
+</resources>

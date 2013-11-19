@@ -2,15 +2,15 @@ package org.searchordsmen.chorussync.lib;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
-import java.util.List;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,11 +18,12 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import com.google.inject.Inject;
+import com.google.common.io.CharStreams;
 
-public class VirtualCreationsDao implements SongListDao {
+public class VirtualCreationsClient implements SongListFetcher {
 
-    private HttpClient client;
+    private static Logger LOG = LoggerFactory.getLogger("lib.VirtualCreationsDao");
+    
     private String userName = "gshavit";
     private String password = "my_Name!";
     private boolean loggedIn = false;
@@ -30,13 +31,8 @@ public class VirtualCreationsDao implements SongListDao {
     private static String BASE_URL = "http://www.seachordsmen.org";
     private static String TABLE_PATH = "/dbpage.php?pg=admin&outputto=csv&dbase=rep";
     private static String LOGIN_PATH = "/dbaction.php";
-
-    public VirtualCreationsDao() {}
-
-    @Inject
-    public void setClient(HttpClient client) {
-        this.client = client;
-    }
+    
+    public VirtualCreationsClient() {}
     
     public SongList fetchSongList() throws Exception {
         loginIfNecessary();
@@ -45,10 +41,13 @@ public class VirtualCreationsDao implements SongListDao {
     }
 
     private SongList parseCsv(InputStream csvStream) throws IOException, JsonProcessingException {
+        String contents = CharStreams.toString(new InputStreamReader(csvStream));
+        LOG.debug("Song list contents:\n{}", contents);
+        Reader csvReader = new StringReader(contents);
         SongList list = new SongList();
         CsvSchema schema = CsvSchema.emptySchema().withHeader();
         CsvMapper mapper = new CsvMapper();
-        MappingIterator<VirtualCreationsSongInfo> it = mapper.reader(VirtualCreationsSongInfo.class).with(schema).readValues(csvStream);
+        MappingIterator<VirtualCreationsSongInfo> it = mapper.reader(VirtualCreationsSongInfo.class).with(schema).readValues(csvReader);
         while (it.hasNext()) {
             try {
                 VirtualCreationsSongInfo info = it.nextValue();
@@ -64,29 +63,30 @@ public class VirtualCreationsDao implements SongListDao {
 
     private void loginIfNecessary() throws IOException {
         if (loggedIn) { return; }
-        HttpPost request = new HttpPost(BASE_URL + LOGIN_PATH);
+        HttpURLConnection conn = (HttpURLConnection) new URL(BASE_URL + LOGIN_PATH).openConnection();
         try {
-            request.setEntity(new UrlEncodedFormEntity(
-                    Utils.makeParams("action", "Login", "username", userName, "password", password)));
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Unexpected exception encoding request params", e);
-        }
-
-        HttpResponse response = client.execute(request);
-        if (response.getStatusLine().getStatusCode() < 300) {
-            loggedIn = true;
+            try {
+                HttpUtils.postForm(conn, "action", "Login", "username", userName, "password", password);
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException("Unexpected exception encoding request params", e);
+            }
+            if (conn.getResponseCode() < 300) {
+                loggedIn = true;
+            }
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
     }
     
     private InputStream fetchCsv() throws IOException {
-        HttpPost request = new HttpPost(BASE_URL + TABLE_PATH);
-        request.setEntity(new UrlEncodedFormEntity(
-                Utils.makeParams("fieldnametype", "fn_raw", "B1", "export")));        
-        HttpResponse response = client.execute(request);
-        if (response.getStatusLine().getStatusCode() == 200) {
-            return response.getEntity().getContent();
+        HttpURLConnection conn = (HttpURLConnection) new URL(BASE_URL + TABLE_PATH).openConnection();
+        HttpUtils.postForm(conn, "fieldnametype", "fn_raw", "B1", "export");
+        if (conn.getResponseCode() == 200) {
+            return conn.getInputStream();
         } else {
-            throw new IOException("Unable to fetch table from web site: status was " + response.getStatusLine());
+            throw new IOException("Unable to fetch table from web site: status was " + conn.getResponseMessage());
         }
     }
 }

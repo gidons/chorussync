@@ -1,6 +1,6 @@
 package org.searchordsmen.chorussync.lib;
 
-public interface SongListDao {
+public interface SongListFetcher {
 
 	SongList fetchSongList() throws Exception;
 }
