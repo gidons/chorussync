@@ -1,16 +1,33 @@
 package org.searchordsmen.chorussync.lib;
 
+import static org.searchordsmen.chorussync.lib.TrackType.*;
+
+import java.util.HashMap;
+
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
-//@ToString(of={"title"},includeFieldNames=false)
 @EqualsAndHashCode
+@Getter
 public class VirtualCreationsSongInfo implements SongInfo {
 
+    public static final String PART_LEAD = "Lead";
+    public static final String PART_BASS = "Bass";
+    public static final String PART_BARI = "Bari";
+    public static final String PART_TENOR = "Tenor";
+    public static final String PART_ALL = "All";
+    
+    public static final TrackType ALL_MP3 = new TrackType(PART_ALL, MP3, BALANCED);
+    public static final TrackType LEAD_MP3_PREDOM = new TrackType(PART_LEAD, MP3, PREDOM);
+    public static final TrackType BASS_MP3_PREDOM = new TrackType(PART_BASS, MP3, PREDOM);
+    public static final TrackType BARI_MP3_PREDOM = new TrackType(PART_BARI, MP3, PREDOM);
+    public static final TrackType TENOR_MP3_PREDOM = new TrackType(PART_TENOR, MP3, PREDOM);
+    
 	@JsonProperty("id")
 	private Long id;
 	@JsonProperty("Song")
@@ -33,38 +50,17 @@ public class VirtualCreationsSongInfo implements SongInfo {
 	private String bariMp3Url;
 	@JsonProperty("Tenor1MP3")
 	private String tenorMp3Url;
-	public Long getId() {
-		return id;
-	}
-	public String getTitle() {
-		return title;
-	}
-	public String getSheetMusicUrl() {
-		return sheetMusicUrl;
-	}
-	public String getCategory() {
-		return category;
-	}
-	public String getStatus() {
-		return status;
-	}
-	public String getLevel() {
-		return level;
-	}
-	public String getAllMp3Url() {
-		return allMp3Url;
-	}
-	public String getLeadMp3Url() {
-		return leadMp3Url;
-	}
-	public String getBassMp3Url() {
-		return bassMp3Url;
-	}
-	public String getBariMp3Url() {
-		return bariMp3Url;
-	}
-	public String getTenorMp3Url() {
-		return tenorMp3Url;
+
+	@Getter(lazy=true) private final HashMap<TrackType, String> trackUrls = generateTrackUrls();
+
+	private HashMap<TrackType, String> generateTrackUrls() {
+	    HashMap<TrackType, String> map = new HashMap<TrackType, String>();
+	    map.put(ALL_MP3, getAllMp3Url());
+	    map.put(LEAD_MP3_PREDOM, getLeadMp3Url());
+        map.put(BASS_MP3_PREDOM, getBassMp3Url());
+        map.put(BARI_MP3_PREDOM, getBariMp3Url());
+        map.put(TENOR_MP3_PREDOM, getTenorMp3Url());
+        return map;
 	}
 	
 	@Override

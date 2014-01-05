@@ -23,7 +23,7 @@
 
     <fragment
         android:id="@+id/song_list"
-        android:name="com.example.chorussync.app.SongListFragment"
+        android:name="org.seachordsmen.chorussync.app.SongListFragment"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"

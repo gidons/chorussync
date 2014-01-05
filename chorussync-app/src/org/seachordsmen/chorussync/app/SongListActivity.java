@@ -1,19 +1,15 @@
-package com.example.chorussync.app;
-
-import org.searchordsmen.chorussync.lib.SongList;
-import org.searchordsmen.chorussync.lib.SongListFetcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package org.seachordsmen.chorussync.app;
 
 import roboguice.activity.RoboFragmentActivity;
+import roboguice.inject.ContentView;
 import roboguice.inject.InjectFragment;
-
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+
+import org.seachordsmen.chorussync.app.R;
 
 /**
  * An activity representing a list of Songs. This activity has different
@@ -30,6 +26,7 @@ import android.view.MenuItem;
  * This activity also implements the required {@link SongListFragment.Callbacks}
  * interface to listen for item selections.
  */
+@ContentView(R.layout.activity_song_list)
 public class SongListActivity extends RoboFragmentActivity implements
 		SongListFragment.Callbacks {
 
@@ -43,9 +40,6 @@ public class SongListActivity extends RoboFragmentActivity implements
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_song_list);
-
-		//songListFragment = (SongListFragment) getSupportFragmentManager().findFragmentById(R.id.song_list);
 
 		if (findViewById(R.id.song_detail_container) != null) {
 			// The detail container view will be present only in the
@@ -81,13 +75,13 @@ public class SongListActivity extends RoboFragmentActivity implements
 	 * the item with the given ID was selected.
 	 */
 	//@Override
-	public void onItemSelected(String id) {
+	public void onSongSelected(long id) {
 		if (twoPane) {
 			// In two-pane mode, show the detail view in this activity by
 			// adding or replacing the detail fragment using a
 			// fragment transaction.
 			Bundle arguments = new Bundle();
-			arguments.putString(SongDetailFragment.ARG_ITEM_ID, id);
+			arguments.putLong(SongDetailFragment.ARG_SONG_ID, id);
 			SongDetailFragment fragment = new SongDetailFragment();
 			fragment.setArguments(arguments);
 			getSupportFragmentManager().beginTransaction()
@@ -97,7 +91,7 @@ public class SongListActivity extends RoboFragmentActivity implements
 			// In single-pane mode, simply start the detail activity
 			// for the selected item ID.
 			Intent detailIntent = new Intent(this, SongDetailActivity.class);
-			detailIntent.putExtra(SongDetailFragment.ARG_ITEM_ID, id);
+			detailIntent.putExtra(SongDetailFragment.ARG_SONG_ID, id);
 			startActivity(detailIntent);
 		}
 	}

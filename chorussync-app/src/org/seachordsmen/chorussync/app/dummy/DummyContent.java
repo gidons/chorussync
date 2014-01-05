@@ -1,4 +1,4 @@
-package com.example.chorussync.app.dummy;
+package org.seachordsmen.chorussync.app.dummy;
 
 import java.util.ArrayList;
 import java.util.HashMap;

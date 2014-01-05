@@ -1,4 +1,4 @@
-package com.example.chorussync.app;
+package org.seachordsmen.chorussync.app;
 
 import org.searchordsmen.chorussync.lib.HttpUtils;
 

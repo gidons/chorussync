@@ -6,11 +6,11 @@ import java.util.List;
 import lombok.Getter;
 
 public class SongList {
-	@Getter private final List<VirtualCreationsSongInfo> songs = new ArrayList<VirtualCreationsSongInfo>();
+	@Getter private final List<SongInfo> songs = new ArrayList<SongInfo>();
 	
 	public SongList() {}
 	
-	public void addSong(VirtualCreationsSongInfo song) {
+	public void addSong(SongInfo song) {
 		songs.add(song);
 	}
 }

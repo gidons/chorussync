@@ -1,22 +1,24 @@
-package com.example.chorussync.app;
+package org.seachordsmen.chorussync.app;
 
-import org.apache.http.client.HttpClient;
-import org.searchordsmen.chorussync.lib.SongInfo;
+import org.seachordsmen.chorussync.app.data.SongListDao;
+import org.seachordsmen.chorussync.app.dummy.DummyContent;
 import org.searchordsmen.chorussync.lib.SongList;
 import org.searchordsmen.chorussync.lib.VirtualCreationsClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import roboguice.fragment.RoboListFragment;
 import android.app.Activity;
-import android.net.http.AndroidHttpClient;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.ListFragment;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ArrayAdapter;
+import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 
-import com.example.chorussync.app.dummy.DummyContent;
+import com.google.inject.Inject;
 
 /**
  * A list fragment representing a list of Songs. This fragment also supports tablet devices by allowing list items to be
@@ -25,7 +27,7 @@ import com.example.chorussync.app.dummy.DummyContent;
  * <p>
  * Activities containing this fragment MUST implement the {@link Callbacks} interface.
  */
-public class SongListFragment extends ListFragment {
+public class SongListFragment extends RoboListFragment {
 
     /**
      * The serialization (saved instance state) Bundle key representing the activated item position. Only used on
@@ -45,8 +47,8 @@ public class SongListFragment extends ListFragment {
 
     private Logger LOG = LoggerFactory.getLogger("app.SongDetailFragment");
 
-    private SongList songList = new SongList();
-    private VirtualCreationsClient songListDao;
+    private VirtualCreationsClient webSiteClient;
+    private SongListDao songListDao;
 
     /**
      * A callback interface that all activities containing this fragment must implement. This mechanism allows
@@ -56,7 +58,7 @@ public class SongListFragment extends ListFragment {
         /**
          * Callback for when an item has been selected.
          */
-        void onItemSelected(String id);
+        void onSongSelected(long id);
     }
 
     /**
@@ -64,8 +66,8 @@ public class SongListFragment extends ListFragment {
      * attached to an activity.
      */
     private static Callbacks sDummyCallbacks = new Callbacks() {
-        // @Override
-        public void onItemSelected(String id) {}
+        // @Override // restoring this causes a compilation error; can't figure out why.
+        public void onSongSelected(long id) {}
     };
 
     /**
@@ -77,8 +79,7 @@ public class SongListFragment extends ListFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        songListDao = new VirtualCreationsClient();
-        onListUpdated(new SongList());
+        showList();
     }
 
     @Override
@@ -96,20 +97,25 @@ public class SongListFragment extends ListFragment {
         super.onAttach(activity);
 
         // Activities containing this fragment must implement its callbacks.
-        if (!(activity instanceof Callbacks)) { throw new IllegalStateException(
-                "Activity must implement fragment's callbacks."); }
+        if (!(activity instanceof Callbacks)) { 
+            throw new IllegalStateException("Activity must implement fragment's callbacks."); 
+        }
 
         callbacks = (Callbacks) activity;
     }
     
     public void onListUpdated(SongList newList) {
-        songList = newList;
-        SongInfo[] songs = songList.getSongs().toArray(new SongInfo[0]);
-        LOG.info("Updated list: {} songs", songs.length);
-        setListAdapter(new ArrayAdapter<SongInfo>(getActivity(), 
-                android.R.layout.simple_list_item_activated_1, android.R.id.text1, songs));
+        LOG.info("Updated list: {} songs", newList.getSongs().size());
+        songListDao.saveList(newList);
+        showList();
     }
 
+    private void showList() {
+        Cursor cursor = songListDao.getActiveSongs();
+        setListAdapter(new SimpleCursorAdapter(getActivity(), 
+                android.R.layout.simple_list_item_activated_1, cursor, new String[]{ SongListDao.F_SONG_TITLE }, new int[]{android.R.id.text1}, 0));        
+    }
+    
     @Override
     public void onDetach() {
         super.onDetach();
@@ -124,7 +130,8 @@ public class SongListFragment extends ListFragment {
 
         // Notify the active callbacks interface (the activity, if the
         // fragment is attached to one) that an item has been selected.
-        callbacks.onItemSelected(DummyContent.ITEMS.get(position).id);
+        LOG.info("song clicked: position={}, id={}", position, id);
+        callbacks.onSongSelected(id);
     }
 
     @Override
@@ -163,7 +170,7 @@ public class SongListFragment extends ListFragment {
             protected SongList doInBackground(Void... params) {
                 try {
                     LOG.info("Fetching song list");
-                    return songListDao.fetchSongList();
+                    return webSiteClient.fetchSongList();
                 } catch (Exception ex) {
                     LOG.error("Failed to fetch song list", ex);
                     return null;
@@ -179,5 +186,15 @@ public class SongListFragment extends ListFragment {
         };
         syncTask.execute();
         
+    }
+    
+    @Inject
+    public void setSongListDao(SongListDao songListDao) {
+        this.songListDao = songListDao;
+    }
+    
+    @Inject
+    public void setWebSiteClient(VirtualCreationsClient webSiteClient) {
+        this.webSiteClient = webSiteClient;
     }
 }

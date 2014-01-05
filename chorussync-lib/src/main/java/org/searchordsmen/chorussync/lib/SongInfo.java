@@ -1,5 +1,7 @@
 package org.searchordsmen.chorussync.lib;
 
+import java.util.Map;
+
 public interface SongInfo {
 
 	public Long getId();
@@ -14,14 +16,6 @@ public interface SongInfo {
 
 	public String getLevel();
 
-	public String getAllMp3Url();
-
-	public String getLeadMp3Url();
-
-	public String getBassMp3Url();
-
-	public String getBariMp3Url();
-
-	public String getTenorMp3Url();
+	public Map<TrackType, String> getTrackUrls();
 
 }

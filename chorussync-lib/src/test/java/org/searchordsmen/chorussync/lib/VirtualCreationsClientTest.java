@@ -24,6 +24,7 @@ public class VirtualCreationsClientTest {
         System.out.println("Fetched songs:");
         for (SongInfo song : list.getSongs()) {
             System.out.println(song);
+            System.out.println(song.getTrackUrls().get(VirtualCreationsSongInfo.LEAD_MP3_PREDOM));
         }
     }
 }

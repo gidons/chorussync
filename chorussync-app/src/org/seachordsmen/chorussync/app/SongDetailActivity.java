@@ -1,18 +1,11 @@
-package com.example.chorussync.app;
+package org.seachordsmen.chorussync.app;
 
-import org.searchordsmen.chorussync.lib.SongList;
-import org.searchordsmen.chorussync.lib.SongListFetcher;
-import org.searchordsmen.chorussync.lib.VirtualCreationsClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import roboguice.activity.RoboFragmentActivity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 
 /**
@@ -23,7 +16,7 @@ import android.view.MenuItem;
  * This activity is mostly just a 'shell' activity containing nothing more than
  * a {@link SongDetailFragment}.
  */
-public class SongDetailActivity extends FragmentActivity {
+public class SongDetailActivity extends RoboFragmentActivity {
 
 
     @Override
@@ -47,12 +40,14 @@ public class SongDetailActivity extends FragmentActivity {
 			// Create the detail fragment and add it to the activity
 			// using a fragment transaction.
 			Bundle arguments = new Bundle();
-			arguments.putString(SongDetailFragment.ARG_ITEM_ID, getIntent()
-					.getStringExtra(SongDetailFragment.ARG_ITEM_ID));
+			arguments.putLong(SongDetailFragment.ARG_SONG_ID, 
+			        getIntent().getLongExtra(SongDetailFragment.ARG_SONG_ID, -1));
 			SongDetailFragment fragment = new SongDetailFragment();
 			fragment.setArguments(arguments);
-			getSupportFragmentManager().beginTransaction()
-					.add(R.id.song_detail_container, fragment).commit();
+			getSupportFragmentManager()
+			    .beginTransaction()
+			    .add(R.id.song_detail_container, fragment)
+			    .commit();
 		}
 	}
 
