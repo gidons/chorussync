@@ -4,7 +4,7 @@ import java.util.Map;
 
 public interface SongInfo {
 
-	public Long getId();
+    public Long getId();
 
 	public String getTitle();
 

@@ -1,22 +1,29 @@
 package org.seachordsmen.chorussync.app;
 
+import org.seachordsmen.chorussync.app.data.DbSongInfo;
 import org.seachordsmen.chorussync.app.data.SongListDao;
-import org.seachordsmen.chorussync.app.dummy.DummyContent;
 import org.searchordsmen.chorussync.lib.SongList;
 import org.searchordsmen.chorussync.lib.VirtualCreationsClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import roboguice.fragment.RoboListFragment;
+import roboguice.RoboGuice;
+
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.ListFragment;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.database.Cursor;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
-import android.view.LayoutInflater;
+import android.preference.PreferenceManager;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.SimpleCursorAdapter.ViewBinder;
+import android.widget.TextView;
 
 import com.google.inject.Inject;
 
@@ -27,7 +34,9 @@ import com.google.inject.Inject;
  * <p>
  * Activities containing this fragment MUST implement the {@link Callbacks} interface.
  */
-public class SongListFragment extends RoboListFragment {
+@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+public class SongListFragment extends ListFragment implements OnSharedPreferenceChangeListener {
+    
 
     /**
      * The serialization (saved instance state) Bundle key representing the activated item position. Only used on
@@ -49,6 +58,8 @@ public class SongListFragment extends RoboListFragment {
 
     private VirtualCreationsClient webSiteClient;
     private SongListDao songListDao;
+    private int activeSongColor;
+    private boolean showOnlyLearning = false;
 
     /**
      * A callback interface that all activities containing this fragment must implement. This mechanism allows
@@ -79,13 +90,18 @@ public class SongListFragment extends RoboListFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        RoboGuice.getInjector(getActivity().getApplicationContext()).injectMembersWithoutViews(this);
+        // TODO check why callback isn't invoked
+        PreferenceManager.getDefaultSharedPreferences(getActivity()).registerOnSharedPreferenceChangeListener(this);
+        showOnlyLearning = getSettings().getShowOnlyLearning();
+        activeSongColor = getResources().getColor(R.color.ActiveSongColor);
         showList();
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        
         // Restore the previously serialized activated item position.
         if (savedInstanceState != null && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
             setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
@@ -111,9 +127,21 @@ public class SongListFragment extends RoboListFragment {
     }
 
     private void showList() {
-        Cursor cursor = songListDao.getActiveSongs();
-        setListAdapter(new SimpleCursorAdapter(getActivity(), 
-                android.R.layout.simple_list_item_activated_1, cursor, new String[]{ SongListDao.F_SONG_TITLE }, new int[]{android.R.id.text1}, 0));        
+        Cursor cursor = songListDao.getActiveSongs(showOnlyLearning);
+        SimpleCursorAdapter adapter = new SimpleCursorAdapter(getActivity(), 
+                android.R.layout.simple_list_item_activated_1, cursor, new String[]{ SongListDao.F_SONG_TITLE }, new int[]{android.R.id.text1}, 0);
+        adapter.setViewBinder(new ViewBinder() {
+            
+            public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
+                DbSongInfo song = new DbSongInfo(cursor);
+                ((TextView)view).setText(song.getTitle());
+                if (!showOnlyLearning && "learn".equals(song.getStatus())) {
+                    view.setBackgroundColor(activeSongColor);
+                }
+                return false;
+            }
+        });
+        setListAdapter(adapter);
     }
     
     @Override
@@ -163,6 +191,10 @@ public class SongListFragment extends RoboListFragment {
         activatedPosition = position;
     }
 
+    private Settings getSettings() {
+        return new Settings(getActivity());
+    }
+
     public void startSync() {
         // Sync the songlist
         AsyncTask<Void, Void, SongList> syncTask = new AsyncTask<Void, Void, SongList>() {
@@ -185,7 +217,12 @@ public class SongListFragment extends RoboListFragment {
             }
         };
         syncTask.execute();
-        
+    }
+    
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(Settings.PREF_ONLY_LEARNING)) {
+            showList();
+        }
     }
     
     @Inject

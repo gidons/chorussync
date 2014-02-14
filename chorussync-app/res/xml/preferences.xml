@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<ListPreference 
+	    android:key="pref_part"
+	    android:title="@string/pref_voicePart"
+	    android:dialogTitle="@string/pref_voicePart"
+	    android:entries="@array/pref_voicePart_entries"
+	    android:entryValues="@array/pref_voicePart_values"
+	    />
+	<CheckBoxPreference 
+	    android:key="pref_onlyLearning"
+	    android:title="@string/pref_onlyLearning"
+	    android:defaultValue="false"/>
+</PreferenceScreen>

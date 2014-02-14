@@ -6,7 +6,6 @@ import java.util.HashMap;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.ToString;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,17 +15,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 public class VirtualCreationsSongInfo implements SongInfo {
 
-    public static final String PART_LEAD = "Lead";
-    public static final String PART_BASS = "Bass";
-    public static final String PART_BARI = "Bari";
-    public static final String PART_TENOR = "Tenor";
-    public static final String PART_ALL = "All";
-    
-    public static final TrackType ALL_MP3 = new TrackType(PART_ALL, MP3, BALANCED);
-    public static final TrackType LEAD_MP3_PREDOM = new TrackType(PART_LEAD, MP3, PREDOM);
-    public static final TrackType BASS_MP3_PREDOM = new TrackType(PART_BASS, MP3, PREDOM);
-    public static final TrackType BARI_MP3_PREDOM = new TrackType(PART_BARI, MP3, PREDOM);
-    public static final TrackType TENOR_MP3_PREDOM = new TrackType(PART_TENOR, MP3, PREDOM);
+    public static final TrackType ALL_MP3 = new TrackType(VoicePart.ALL, Format.MP3, Style.BALANCED);
+    public static final TrackType LEAD_MP3_STEREO = new TrackType(VoicePart.LEAD, Format.MP3, Style.STEREO);
+    public static final TrackType BASS_MP3_STEREO = new TrackType(VoicePart.BASS, Format.MP3, Style.STEREO);
+    public static final TrackType BARI_MP3_STEREO = new TrackType(VoicePart.BARI, Format.MP3, Style.STEREO);
+    public static final TrackType TENOR_MP3_STEREO = new TrackType(VoicePart.TENOR, Format.MP3, Style.STEREO);
     
 	@JsonProperty("id")
 	private Long id;
@@ -56,10 +49,11 @@ public class VirtualCreationsSongInfo implements SongInfo {
 	private HashMap<TrackType, String> generateTrackUrls() {
 	    HashMap<TrackType, String> map = new HashMap<TrackType, String>();
 	    map.put(ALL_MP3, getAllMp3Url());
-	    map.put(LEAD_MP3_PREDOM, getLeadMp3Url());
-        map.put(BASS_MP3_PREDOM, getBassMp3Url());
-        map.put(BARI_MP3_PREDOM, getBariMp3Url());
-        map.put(TENOR_MP3_PREDOM, getTenorMp3Url());
+	    // TODO figure out the real style (stereo, predom, etc.)
+	    map.put(LEAD_MP3_STEREO, getLeadMp3Url());
+        map.put(BASS_MP3_STEREO, getBassMp3Url());
+        map.put(BARI_MP3_STEREO, getBariMp3Url());
+        map.put(TENOR_MP3_STEREO, getTenorMp3Url());
         return map;
 	}
 	

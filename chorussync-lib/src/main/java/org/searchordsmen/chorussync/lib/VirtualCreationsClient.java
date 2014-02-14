@@ -8,6 +8,8 @@ import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
+import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +30,9 @@ public class VirtualCreationsClient implements SongListFetcher {
     private String password = "my_Name!";
     private boolean loggedIn = false;
 
-    private static String BASE_URL = "http://www.seachordsmen.org";
-    private static String TABLE_PATH = "/dbpage.php?pg=admin&outputto=csv&dbase=rep";
-    private static String LOGIN_PATH = "/dbaction.php";
+    private static String BASE_URL = "http://www.seachordsmen.org/";
+    private static String TABLE_PATH = "dbpage.php?pg=admin&outputto=csv&dbase=rep";
+    private static String LOGIN_PATH = "dbaction.php";
     
     public VirtualCreationsClient() {}
     
@@ -38,6 +40,19 @@ public class VirtualCreationsClient implements SongListFetcher {
         loginIfNecessary();
         InputStream csvStream = fetchCsv();
         return parseCsv(csvStream);
+    }
+    
+    public InputStream downloadTrack(String url, Date lastModified) throws Exception {
+        loginIfNecessary();
+        HttpURLConnection conn = (HttpURLConnection) new URL(BASE_URL + url).openConnection();
+        if (lastModified != null) {
+            conn.setIfModifiedSince(lastModified.getTime());
+        }
+        if (conn.getResponseCode() == 200) {
+            return conn.getInputStream();
+        } else {
+            throw new IOException("Unable to fetch table from web site: status was " + conn.getResponseMessage());
+        }
     }
 
     private SongList parseCsv(InputStream csvStream) throws IOException, JsonProcessingException {
@@ -50,7 +65,7 @@ public class VirtualCreationsClient implements SongListFetcher {
         MappingIterator<VirtualCreationsSongInfo> it = mapper.reader(VirtualCreationsSongInfo.class).with(schema).readValues(csvReader);
         while (it.hasNext()) {
             try {
-                VirtualCreationsSongInfo info = it.nextValue();
+                SongInfo info = it.nextValue();
                 list.addSong(info);
             } catch(JsonMappingException ex) {
                 throw new IllegalArgumentException("Error parsing CSV from website", ex);

@@ -1,16 +1,27 @@
 package org.seachordsmen.chorussync.app;
 
+import java.net.URLConnection;
+
 import org.seachordsmen.chorussync.app.data.SongListDao;
 import org.searchordsmen.chorussync.lib.SongInfo;
+import org.searchordsmen.chorussync.lib.SongList;
+import org.searchordsmen.chorussync.lib.TrackType;
+import org.searchordsmen.chorussync.lib.VirtualCreationsClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import roboguice.fragment.RoboFragment;
+import roboguice.RoboGuice;
 import roboguice.inject.InjectView;
+import android.annotation.TargetApi;
+import android.app.Fragment;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.google.inject.Inject;
@@ -20,7 +31,8 @@ import com.google.inject.Inject;
  * contained in a {@link SongListActivity} in two-pane mode (on tablets) or a
  * {@link SongDetailActivity} on handsets.
  */
-public class SongDetailFragment extends RoboFragment {
+@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+public class SongDetailFragment extends Fragment implements OnClickListener {
     
     private static final Logger LOG = LoggerFactory.getLogger(SongDetailFragment.class);
 	/**
@@ -32,7 +44,10 @@ public class SongDetailFragment extends RoboFragment {
 	private SongInfo song;
 	
 	@Inject private SongListDao songListDao;
-	@InjectView(R.id.song_detail) private TextView detailView;
+	private TextView titleView;
+	private TextView categoryView;
+    private Button downloadButton;
+    private VirtualCreationsClient webSiteClient;
 
 	/**
 	 * Mandatory empty constructor for the fragment manager to instantiate the
@@ -44,12 +59,11 @@ public class SongDetailFragment extends RoboFragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+        RoboGuice.getInjector(getActivity().getApplicationContext()).injectMembersWithoutViews(this);
 
 		if (getArguments().containsKey(ARG_SONG_ID)) {
 		    long songId = getArguments().getLong(ARG_SONG_ID);
-            LOG.info("Creating SongDetailFragment with song ID {}", songId);
 		    song = songListDao.getSongById(songId);
-		    LOG.info("Fetched song: {}", song.getTitle());
 		}
 	}
 
@@ -60,14 +74,32 @@ public class SongDetailFragment extends RoboFragment {
 	
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
-        LOG.info("In SongDetailFragment.onViewCreated");
 	    super.onViewCreated(view, savedInstanceState);
 	    
-        LOG.info("In SongDetailFragment.onViewCreated");
-        // Show the dummy content as text in a TextView.
+        titleView = (TextView) getActivity().findViewById(R.id.song_detail_title);
+        categoryView = (TextView) getActivity().findViewById(R.id.song_detail_category);
+        downloadButton = (Button) getActivity().findViewById(R.id.song_detail_download);
         if (song != null) {
-            LOG.info("Showing song title: {}", song.getTitle());
-            detailView.setText(song.getTitle());
+            titleView.setText(song.getTitle());
+            categoryView.setText(song.getCategory());
+            downloadButton.setOnClickListener(this);
         }
 	}
+	
+	public void onDownloadClick(View button) {
+        TrackType trackType = new TrackType(new Settings(getActivity()).getDefaultVoicePart(), TrackType.Format.MP3, TrackType.Style.STEREO);
+        DownloadTrackTask task = new DownloadTrackTask(songListDao, webSiteClient);
+        task.execute(new DownloadTrackTask.Params(song, trackType));
+	}
+
+    public void onClick(View v) {
+        if (v == downloadButton) {
+            onDownloadClick(v);
+        }
+    }
+
+    @Inject
+    public void setWebSiteClient(VirtualCreationsClient webSiteClient) {
+        this.webSiteClient = webSiteClient;
+    }
 }

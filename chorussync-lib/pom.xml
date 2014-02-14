@@ -47,6 +47,13 @@
         <artifactId>logback-classic</artifactId>
         <version>1.0.13</version>
     </dependency>
+		<dependency>
+			<groupId>com.google.android</groupId>
+			<artifactId>android</artifactId>
+			<version>4.1.1.4</version>
+			<scope>provided</scope>
+		</dependency>
+    
 <!--     <dependency>
         <groupId>commons-httpclient</groupId>
         <artifactId>commons-httpclient</artifactId>

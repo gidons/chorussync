@@ -1,9 +1,8 @@
 package org.seachordsmen.chorussync.app;
 
-import roboguice.activity.RoboFragmentActivity;
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,7 +15,7 @@ import android.view.MenuItem;
  * This activity is mostly just a 'shell' activity containing nothing more than
  * a {@link SongDetailFragment}.
  */
-public class SongDetailActivity extends RoboFragmentActivity {
+public class SongDetailActivity extends Activity {
 
 
     @Override
@@ -44,7 +43,7 @@ public class SongDetailActivity extends RoboFragmentActivity {
 			        getIntent().getLongExtra(SongDetailFragment.ARG_SONG_ID, -1));
 			SongDetailFragment fragment = new SongDetailFragment();
 			fragment.setArguments(arguments);
-			getSupportFragmentManager()
+			getFragmentManager()
 			    .beginTransaction()
 			    .add(R.id.song_detail_container, fragment)
 			    .commit();

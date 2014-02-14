@@ -1,15 +1,16 @@
 package org.seachordsmen.chorussync.app;
 
-import roboguice.activity.RoboFragmentActivity;
-import roboguice.inject.ContentView;
-import roboguice.inject.InjectFragment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-
-import org.seachordsmen.chorussync.app.R;
 
 /**
  * An activity representing a list of Songs. This activity has different
@@ -26,21 +27,24 @@ import org.seachordsmen.chorussync.app.R;
  * This activity also implements the required {@link SongListFragment.Callbacks}
  * interface to listen for item selections.
  */
-@ContentView(R.layout.activity_song_list)
-public class SongListActivity extends RoboFragmentActivity implements
-		SongListFragment.Callbacks {
+public class SongListActivity extends Activity implements SongListFragment.Callbacks {
 
 	/**
 	 * Whether or not the activity is in two-pane mode, i.e. running on a tablet
 	 * device.
 	 */
 	private boolean twoPane;
-    @InjectFragment(R.id.song_list) private SongListFragment songListFragment;
+    private SongListFragment songListFragment;
+    private static final Logger LOG = LoggerFactory.getLogger(SongListActivity.class);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		setContentView(R.layout.activity_song_list);
+		
+		songListFragment = (SongListFragment) getFragmentManager().findFragmentById(R.id.song_list);
+		
 		if (findViewById(R.id.song_detail_container) != null) {
 			// The detail container view will be present only in the
 			// large-screen layouts (res/values-large and
@@ -53,7 +57,7 @@ public class SongListActivity extends RoboFragmentActivity implements
 
 		// TODO: If exposing deep links into your app, handle intents here.
 	}
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -66,6 +70,12 @@ public class SongListActivity extends RoboFragmentActivity implements
 	    switch (item.getItemId()) {
         case R.id.action_sync:
             songListFragment.startSync();
+            break;
+        case R.id.action_settings:
+            LOG.info("Settings clicked");
+            Intent prefIntent = new Intent(this, SettingsActivity.class);
+            startActivityForResult(prefIntent, 0);
+            break;
 	    }
 	    return super.onOptionsItemSelected(item);
 	}
@@ -84,7 +94,7 @@ public class SongListActivity extends RoboFragmentActivity implements
 			arguments.putLong(SongDetailFragment.ARG_SONG_ID, id);
 			SongDetailFragment fragment = new SongDetailFragment();
 			fragment.setArguments(arguments);
-			getSupportFragmentManager().beginTransaction()
+			getFragmentManager().beginTransaction()
 					.replace(R.id.song_detail_container, fragment).commit();
 
 		} else {

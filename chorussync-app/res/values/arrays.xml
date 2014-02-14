@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="pref_voicePart_entries">
+        <item>Bass</item>
+        <item>Baritone</item>
+       	<item>Lead</item>
+        <item>Tenor</item>
+    </array>
+    <!-- see org.searchordsmen.chorussync.lib.VoicePart -->
+    <array name="pref_voicePart_values">
+        <item>BASS</item>
+        <item>BARI</item>
+       	<item>LEAD</item>
+        <item>TENOR</item>
+    </array>
+</resources>
