@@ -12,6 +12,7 @@ public class DbTrackInfo {
     private final Long songId;
     private final TrackType type;
     private final String url;
+    private final long downloadId;
     private final Date downloadedDate;
     
     public DbTrackInfo(Cursor c) {
@@ -20,7 +21,8 @@ public class DbTrackInfo {
         String typeStr = c.getString(2);
         this.type = TrackType.fromString(typeStr);
         this.url = c.getString(3);
-        String downloadedDateStr = c.getString(4);
+        this.downloadId = c.getLong(4);
+        String downloadedDateStr = c.getString(5);
         if (downloadedDateStr != null) {
             try {
                 this.downloadedDate = SongListDao.DATE_FORMAT.parse(downloadedDateStr);
@@ -36,5 +38,6 @@ public class DbTrackInfo {
     public Long getSongId() { return songId; }
     public TrackType getType() { return type; }
     public String getUrl() { return url; }
+    public long getDownloadId() { return downloadId; }
     public Date getDownloadedDate() { return downloadedDate; }
 }

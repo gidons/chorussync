@@ -1,6 +1,11 @@
 package org.seachordsmen.chorussync.app;
 
+import org.seachordsmen.chorussync.app.SongDetailFragment.Callbacks;
+import org.searchordsmen.chorussync.lib.SongInfo;
+import org.searchordsmen.chorussync.lib.TrackType;
+
 import android.app.Activity;
+import android.app.DownloadManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -15,7 +20,7 @@ import android.view.MenuItem;
  * This activity is mostly just a 'shell' activity containing nothing more than
  * a {@link SongDetailFragment}.
  */
-public class SongDetailActivity extends Activity {
+public class SongDetailActivity extends Activity implements Callbacks {
 
 
     @Override
@@ -72,4 +77,10 @@ public class SongDetailActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+
+	public void onDownloadTrack() {
+	    DownloadManager downloadMgr = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+	    downloadMgr.enqueue(new DownloadManager.Request(null));
+	}
+	
 }

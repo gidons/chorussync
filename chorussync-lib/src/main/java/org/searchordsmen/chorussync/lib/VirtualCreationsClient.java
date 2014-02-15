@@ -42,6 +42,10 @@ public class VirtualCreationsClient implements SongListFetcher {
         return parseCsv(csvStream);
     }
     
+    public String getFullUrl(String relativeUrl) {
+        return BASE_URL + relativeUrl;
+    }
+    
     public InputStream downloadTrack(String url, Date lastModified) throws Exception {
         loginIfNecessary();
         HttpURLConnection conn = (HttpURLConnection) new URL(BASE_URL + url).openConnection();

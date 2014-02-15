@@ -1,10 +1,5 @@
 package org.seachordsmen.chorussync.app.data;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map.Entry;
@@ -21,7 +16,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.Environment;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -52,13 +46,14 @@ public class SongListDao extends SQLiteOpenHelper {
     public static final String F_TRACK_SONG_ID = "SONG_ID";
     public static final String F_TRACK_TYPE = "TRACK_TYPE";
     public static final String F_TRACK_URL = "URL";
+    public static final String F_TRACK_DOWNLOAD_ID = "DOWNLOAD_ID";
     public static final String F_TRACK_DOWNLOADED_DATE = "DOWNLOADED_DATE";
-    public static final String[] TRACK_ALL_FIELDS = {F_TRACK_ID, F_TRACK_SONG_ID, F_TRACK_TYPE, F_TRACK_URL, F_TRACK_DOWNLOADED_DATE, F_TRACK_ID + " as _id"};
+    public static final String[] TRACK_ALL_FIELDS = {F_TRACK_ID, F_TRACK_SONG_ID, F_TRACK_TYPE, F_TRACK_URL, F_TRACK_DOWNLOAD_ID, F_TRACK_DOWNLOADED_DATE, F_TRACK_ID + " as _id"};
     
     private final static String DB_NAME = "CHORUSSYNC";
     private final static String SONGS_TABLE = "SONGS";
     private final static String TRACKS_TABLE = "TRACKS";
-    private final static int DB_VERSION = 2;
+    private final static int DB_VERSION = 3;
     private final static String CREATE_SONGS_SQL = 
             "CREATE TABLE " + SONGS_TABLE + " (" +
             F_SONG_ID + " INTEGER PRIMARY KEY," +
@@ -76,6 +71,7 @@ public class SongListDao extends SQLiteOpenHelper {
             F_TRACK_SONG_ID + " INTEGER, " +
             F_TRACK_TYPE + " TEXT, " +
             F_TRACK_URL + " TEXT, " +
+            F_TRACK_DOWNLOAD_ID + " INTEGER," +
             F_TRACK_DOWNLOADED_DATE + " DATE," +
             F_TRACK_CREATED_DATE + " DATE," +
             F_TRACK_UPDATED_DATE + " DATE," +
@@ -97,8 +93,9 @@ public class SongListDao extends SQLiteOpenHelper {
     
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion == 1) {
-            db.execSQL(CREATE_TRACKS_SQL);
+        switch (oldVersion) {
+        case 1: db.execSQL(CREATE_TRACKS_SQL); break;
+        case 2: db.execSQL("ALTER TABLE " + TRACKS_TABLE + " ADD COLUMN " + F_TRACK_DOWNLOAD_ID + " INTEGER"); break;
         }
     }
     
@@ -179,7 +176,7 @@ public class SongListDao extends SQLiteOpenHelper {
         }
     }
     
-    public void updateTrackDownloaded(long songId, TrackType trackType) {
+    public void updateTrackDownloaded(long songId, TrackType trackType, long downloadId) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         try {
@@ -187,6 +184,7 @@ public class SongListDao extends SQLiteOpenHelper {
             ContentValues values = new ContentValues();
             values.put(F_TRACK_SONG_ID, songId);
             values.put(F_TRACK_TYPE, trackType.asString());
+            values.put(F_TRACK_DOWNLOAD_ID, downloadId);
             values.put(F_TRACK_DOWNLOADED_DATE, now());
             db.update(TRACKS_TABLE, values, TRACK_BY_SONGTYPE_CLAUSE, getUpdateTrackWhereArgs(values));
             db.setTransactionSuccessful();
