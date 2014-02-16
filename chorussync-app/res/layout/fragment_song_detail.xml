@@ -32,4 +32,14 @@
 	    android:id="@+id/song_detail_download"
 	    />
 
+	<ImageButton
+	    android:id="@+id/song_detail_button_play"
+	    android:contentDescription="@string/play"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentBottom="true"
+	    android:layout_centerHorizontal="true"
+	    android:layout_marginBottom="28dp"
+	    android:src="@drawable/ic_action_play" />
+
 </RelativeLayout>

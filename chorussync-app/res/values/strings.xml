@@ -11,5 +11,6 @@
     <string name="pref_voicePart">Voice part</string>
     <string name="pref_onlyLearning">Show only current songs</string>
     <string name="button_download">Download</string>
+    <string name="play">Play</string>
     
 </resources>

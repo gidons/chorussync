@@ -17,6 +17,7 @@
         </activity>
         
         <activity android:label="Settings" android:name="SettingsActivity"></activity>
+        <service android:label="PlayerService" android:name=".player.PlayerService" android:exported="false"></service>
     </application>
 
 </manifest>

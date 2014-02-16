@@ -1,8 +1,6 @@
 package org.seachordsmen.chorussync.app;
 
 import org.seachordsmen.chorussync.app.SongDetailFragment.Callbacks;
-import org.searchordsmen.chorussync.lib.SongInfo;
-import org.searchordsmen.chorussync.lib.TrackType;
 
 import android.app.Activity;
 import android.app.DownloadManager;

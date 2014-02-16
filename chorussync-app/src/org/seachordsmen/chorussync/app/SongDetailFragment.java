@@ -3,10 +3,13 @@ package org.seachordsmen.chorussync.app;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 
 import org.seachordsmen.chorussync.app.data.DbTrackInfo;
 import org.seachordsmen.chorussync.app.data.SongListDao;
+import org.seachordsmen.chorussync.app.player.Player;
+import org.seachordsmen.chorussync.app.player.PlayerService;
 import org.searchordsmen.chorussync.lib.SongInfo;
 import org.searchordsmen.chorussync.lib.TrackType;
 import org.searchordsmen.chorussync.lib.VirtualCreationsClient;
@@ -18,16 +21,21 @@ import android.annotation.TargetApi;
 import android.app.DownloadManager;
 import android.app.DownloadManager.Request;
 import android.app.Fragment;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.IBinder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.google.inject.Inject;
@@ -55,12 +63,19 @@ public class SongDetailFragment extends Fragment implements OnClickListener {
 	private SongListDao songListDao;
 	private TextView titleView;
     private Button downloadButton;
+    private ImageButton playButton;
     private TextView downloadStatusView;
     private VirtualCreationsClient webSiteClient;
     
     private Callbacks callbacks;
     private TrackType trackType;
     private DbTrackInfo track;
+    private File localTrackFile;
+    
+    private Player player;
+    private boolean bound = false;
+    private boolean playing = false;
+    
     private DateFormat DATE_FORMAT = DateFormat.getDateInstance(SimpleDateFormat.MEDIUM, Locale.getDefault());
 
 	/**
@@ -84,11 +99,43 @@ public class SongDetailFragment extends Fragment implements OnClickListener {
 		    song = songListDao.getSongById(songId);
 	        refreshTrack();
 		}
+		
+	}
+	
+	@Override
+	public void onStart() {
+        super.onStart();
+        Intent intent = new Intent(getActivity(), PlayerService.class);
+        intent.setData(Uri.fromFile(localTrackFile));
+        getActivity().bindService(intent, playerServiceConn, Context.BIND_AUTO_CREATE);
+	}
+	
+	@Override
+	public void onStop() {
+	    super.onStop();
+	    getActivity().unbindService(playerServiceConn);
 	}
 
     private void refreshTrack() {
         trackType = new TrackType(new Settings(getActivity()).getDefaultVoicePart(), TrackType.Format.MP3, TrackType.Style.STEREO);
         track = songListDao.getTrackBySongAndType(song.getId(), trackType);
+        localTrackFile = getLocalTrackFile();
+    }
+    
+    private void refreshTrackRelatedViews() {
+        if (downloadStatusView != null) {
+            updateDownloadStatus();
+        }
+        boolean trackExists = localTrackFile.exists();
+        if (playButton != null) {
+            playButton.setEnabled(trackExists);
+            refreshPlayButton();
+        }
+    }
+
+    private void refreshPlayButton() {
+        boolean playing = bound ? player.isPlaying() : false;
+        playButton.setImageResource(playing ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play);
     }
 
 	@Override
@@ -103,17 +150,24 @@ public class SongDetailFragment extends Fragment implements OnClickListener {
         titleView = (TextView) getActivity().findViewById(R.id.song_detail_title);
         downloadStatusView = (TextView) getActivity().findViewById(R.id.song_detail_download_status);
         downloadButton = (Button) getActivity().findViewById(R.id.song_detail_download);
+        downloadButton.setOnClickListener(this);
+        playButton = (ImageButton) getActivity().findViewById(R.id.song_detail_button_play);
+        playButton.setOnClickListener(this);
         if (song != null) {
             titleView.setText(song.getTitle());
-            String statusText = (track == null) 
-                    ? "No track available"
-                    : (track.getDownloadedDate() != null) 
-                            ? "Downloaded " + DATE_FORMAT.format(track.getDownloadedDate()) 
-                            : "Not downloaded";
-            downloadStatusView.setText(statusText);
-            downloadButton.setOnClickListener(this);
+            refreshTrackRelatedViews();
         }
 	}
+
+    private void updateDownloadStatus() {
+        Date downloadedDate = track.getDownloadedDate();
+        String statusText = (track == null) 
+                ? "No track available"
+                : (downloadedDate != null) 
+                        ? "Downloaded " + DATE_FORMAT.format(track.getDownloadedDate()) 
+                        : "Not downloaded";
+        downloadStatusView.setText(statusText);
+    }
 	
 	public void onDownloadClick(View button) {
         if (track == null) {
@@ -123,10 +177,10 @@ public class SongDetailFragment extends Fragment implements OnClickListener {
         Uri downloadUrl = Uri.parse(webSiteClient.getFullUrl(track.getUrl()));
         Request request = new Request(downloadUrl);
         request.setDescription(String.format("Downloading %s track for %s", trackType.getPart().getDisplayName(), song.getTitle()));
-        File musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
-        String fileName = String.format("%s-%s.mp3", cleanFileName(song.getTitle()), trackType.getPart().getTrackFilePart());
-        request.setDestinationUri(Uri.fromFile(new File(musicDir, fileName)));
+        localTrackFile = getLocalTrackFile();
+        request.setDestinationUri(Uri.fromFile(localTrackFile));
         request.allowScanningByMediaScanner();
+        playButton.setImageResource(android.R.drawable.ic_media_pause);
         long downloadId;
         try {
             downloadId = downloadMgr.enqueue(request);
@@ -138,6 +192,16 @@ public class SongDetailFragment extends Fragment implements OnClickListener {
         songListDao.updateTrackDownloaded(song.getId(), trackType, downloadId);
         refreshTrack();
 	}
+
+    private File getLocalTrackFile() {
+        if (track != null) {
+            File musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+            String fileName = String.format("%s-%s.mp3", cleanFileName(song.getTitle()), trackType.getPart().getTrackFilePart());
+            return new File(musicDir, fileName);
+        } else {
+            return null;
+        }
+    }
 	
 	private String cleanFileName(String name) {
 	    return name.replaceAll("[^a-zA-Z0-9]+", "_");
@@ -146,9 +210,18 @@ public class SongDetailFragment extends Fragment implements OnClickListener {
     public void onClick(View v) {
         if (v == downloadButton) {
             onDownloadClick(v);
+        } else if (v == playButton) {
+            onPlayClick();
         }
     }
-
+    
+    public void onPlayClick() {
+        if (bound) {
+            player.togglePlayPause();
+        }
+        refreshPlayButton();
+    }
+    
     @Inject
     public void setWebSiteClient(VirtualCreationsClient webSiteClient) {
         this.webSiteClient = webSiteClient;
@@ -158,4 +231,16 @@ public class SongDetailFragment extends Fragment implements OnClickListener {
     public void setSongListDao(SongListDao songListDao) {
         this.songListDao = songListDao;
     }
+    
+    private final ServiceConnection playerServiceConn = new ServiceConnection() {
+        
+        public void onServiceDisconnected(ComponentName name) {
+            bound = false;
+        }
+        
+        public void onServiceConnected(ComponentName name, IBinder binder) {
+            player = ((PlayerService.Binder) binder).getPlayer();
+            bound = true;
+        }
+    };
 }
