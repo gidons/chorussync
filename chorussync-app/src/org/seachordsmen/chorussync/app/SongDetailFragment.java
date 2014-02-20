@@ -74,9 +74,9 @@ public class SongDetailFragment extends Fragment implements OnClickListener {
     
     private Player player;
     private boolean bound = false;
-    private boolean playing = false;
     
     private DateFormat DATE_FORMAT = DateFormat.getDateInstance(SimpleDateFormat.MEDIUM, Locale.getDefault());
+    private Button modeButton;
 
 	/**
 	 * Mandatory empty constructor for the fragment manager to instantiate the
@@ -97,7 +97,7 @@ public class SongDetailFragment extends Fragment implements OnClickListener {
 		if (getArguments().containsKey(ARG_SONG_ID)) {
 		    long songId = getArguments().getLong(ARG_SONG_ID);
 		    song = songListDao.getSongById(songId);
-	        refreshTrack();
+	        refreshTrackInfo();
 		}
 		
 	}
@@ -116,7 +116,7 @@ public class SongDetailFragment extends Fragment implements OnClickListener {
 	    getActivity().unbindService(playerServiceConn);
 	}
 
-    private void refreshTrack() {
+    private void refreshTrackInfo() {
         trackType = new TrackType(new Settings(getActivity()).getDefaultVoicePart(), TrackType.Format.MP3, TrackType.Style.STEREO);
         track = songListDao.getTrackBySongAndType(song.getId(), trackType);
         localTrackFile = getLocalTrackFile();
@@ -153,6 +153,8 @@ public class SongDetailFragment extends Fragment implements OnClickListener {
         downloadButton.setOnClickListener(this);
         playButton = (ImageButton) getActivity().findViewById(R.id.song_detail_button_play);
         playButton.setOnClickListener(this);
+        modeButton = (Button) getActivity().findViewById(R.id.song_detail_button_mode);
+        modeButton.setOnClickListener(this);
         if (song != null) {
             titleView.setText(song.getTitle());
             refreshTrackRelatedViews();
@@ -190,7 +192,7 @@ public class SongDetailFragment extends Fragment implements OnClickListener {
             return;
         }
         songListDao.updateTrackDownloaded(song.getId(), trackType, downloadId);
-        refreshTrack();
+        refreshTrackInfo();
 	}
 
     private File getLocalTrackFile() {
@@ -212,6 +214,8 @@ public class SongDetailFragment extends Fragment implements OnClickListener {
             onDownloadClick(v);
         } else if (v == playButton) {
             onPlayClick();
+        } else if (v == modeButton) {
+            onModeClick();
         }
     }
     
@@ -220,6 +224,12 @@ public class SongDetailFragment extends Fragment implements OnClickListener {
             player.togglePlayPause();
         }
         refreshPlayButton();
+    }
+    
+    public void onModeClick() {
+        if (bound) {
+            player.changeMode();
+        }
     }
     
     @Inject

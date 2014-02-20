@@ -32,8 +32,19 @@
 	    android:id="@+id/song_detail_download"
 	    />
 
+	<Button
+	    android:id="@+id/song_detail_button_mode"
+	    android:text="@string/playMode"
+	    android:contentDescription="@string/playMode"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_above="@+id/song_detail_button_play"
+	    android:layout_centerHorizontal="true"
+	    android:layout_marginBottom="10dp"
+	    />
+	
 	<ImageButton
-	    android:id="@+id/song_detail_button_play"
+	    android:id="@id/song_detail_button_play"
 	    android:contentDescription="@string/play"
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
