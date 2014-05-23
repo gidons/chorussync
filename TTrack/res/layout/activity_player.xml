@@ -1,0 +1,138 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".PlayerActivity" >
+ 
+  	<org.seachordsmen.ttrack.BookmarkedSeekBar
+        android:id="@+id/seekBar"
+       	android:layout_width="match_parent"
+      	android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+   	/>
+
+    <TextView
+        android:id="@+id/textTrackName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/seekBar"
+        android:text="Track Title"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <FrameLayout
+        android:layout_alignParentRight="true"
+        android:layout_alignBottom="@id/textTrackName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/background_dark"
+        android:padding="2dp"
+        >
+        <TextView
+	        android:id="@+id/textTime"
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+	        android:layout_margin="1dp"
+	        android:background="@android:color/background_light"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
+    </FrameLayout>
+    
+    <LinearLayout 
+        android:id="@+id/playbackControls"
+        android:orientation="vertical"
+        android:layout_below="@id/textTrackName"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    	<LinearLayout 
+	        android:id="@+id/playbackControls1"
+        	android:orientation="horizontal"
+        	android:paddingTop="5dp"
+        	android:paddingBottom="5dp"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content">
+        	
+	        <ImageButton
+            	android:id="@+id/buttonPrev"
+            	android:layout_width="wrap_content"
+            	android:layout_height="wrap_content"
+            	android:src="@drawable/ic_media_previous"
+            	android:onClick="onPrevClick"
+            	android:contentDescription="@string/previous" />
+        
+	        <ImageButton
+            	android:id="@+id/buttonPlay"
+            	android:layout_width="wrap_content"
+            	android:layout_height="wrap_content"
+            	android:src="@drawable/ic_media_play"
+            	android:onClick="onPlayClick"
+            	android:contentDescription="@string/previous" />
+
+        	<ImageButton
+	            android:id="@+id/buttonNext"
+            	android:layout_width="wrap_content"
+            	android:layout_height="wrap_content"
+            	android:src="@drawable/ic_media_next"
+	            android:onClick="onNextClick"
+            	android:contentDescription="@string/previous" />
+       	</LinearLayout>
+        
+    	<LinearLayout 
+	        android:id="@+id/playbackControls2"
+        	android:orientation="horizontal"
+        	android:paddingTop="5dp"
+        	android:paddingBottom="5dp"
+        	android:layout_width="match_parent"
+        	android:layout_height="wrap_content">
+        	
+	    	<ToggleButton
+	            android:id="@+id/buttonSetBookmark"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:drawableTop="@drawable/ic_media_bookmark"
+	            android:lines="0"
+	            android:onClick="onSetBookmarkClick"
+	            android:contentDescription="@string/previous" />
+	        
+	        <ToggleButton
+	            android:id="@+id/buttonJumpToBookmark"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:drawableTop="@drawable/ic_media_back_to_bookmark"
+	            android:longClickable="true"
+	            android:lines="0"
+	            android:onClick="onJumpToBookmarkClick"
+	            android:contentDescription="@string/previous" />
+
+	    </LinearLayout>
+	        
+    </LinearLayout>
+    
+    <LinearLayout 
+        android:id="@+id/mixControls"
+        android:orientation="horizontal"
+        android:layout_below="@id/playbackControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+        <TextView 
+	        android:id="@+id/labelMixMode"
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:labelFor="@+id/spinnerMixMode"
+        	android:text="@string/mixMode"
+        	android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <Spinner 
+	        android:id="@id/spinnerMixMode"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:entries="@array/arrayMixModes"
+	        />
+	</LinearLayout>
+</RelativeLayout>

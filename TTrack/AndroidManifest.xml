@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.seachordsmen.ttrack"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="16"
+        android:targetSdkVersion="19" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name="org.seachordsmen.ttrack.PlayerActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="unspecified" >
+            <intent-filter>
+                <action android:name="android.intent.action.MUSIC_PLAYER" />
+                <category android:name="android.intent.category.OPENABLE" />
+            </intent-filter>
+            <meta-data 
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".PlaylistDetailActivity"/>
+            
+        </activity>
+
+        <service android:name="org.seachordsmen.ttrack.PlayerService" >
+        </service>
+
+        <activity
+            android:name="org.seachordsmen.ttrack.PlaylistListActivity"
+            android:label="@string/title_playlist_list" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="org.seachordsmen.ttrack.PlaylistDetailActivity"
+            android:label="@string/title_playlist_detail"
+            android:parentActivityName=".PlaylistListActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".PlaylistListActivity" />
+        </activity>
+    </application>
+
+</manifest>

@@ -1,0 +1,14 @@
+Bugs:
+
+- Fix orientation bugs
+- Get title in notification in PlayerService
+- Notify service when last track ends so it can stopSelf()
+
+Features:
+
+- Start player directly using track URI
+- Launch from ChorusSync
+- Play entire playlist
+- Notification
+- Rotate orientation
+
